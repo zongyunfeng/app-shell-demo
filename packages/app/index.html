@@ -1,0 +1,72 @@
+<html>
+<head>
+    <title>博客网站</title>
+    <script src="https://unpkg.com/history@5.0.0"></script>
+    <script src="http://localhost:3001/pages.js" async></script>
+    <script src="http://localhost:3002/pages.js" async></script>
+    <script src="http://localhost:3003/pages.js" async></script>
+    <link href="/index.css" rel="stylesheet"/>
+</head>
+<body>
+
+<div id="app-shell">
+    <div id="app-content"><span>内容还在加载中loading😘</span></div>
+</div>
+
+<script type="module">
+    console.log("app-shell初始化了");
+    window.appHistory = HistoryLibrary.createBrowserHistory();
+
+    const appContent = document.querySelector("#app-content");
+
+    const routes = {
+        "/article/": "article-page",
+        "/recommendation": "recommendation-article-page",
+        "/": "article-list-page",
+    };
+
+    const findComponentByPath = (pathname) => {
+        const prefix = Object.keys(routes).find(key =>
+            pathname.startsWith(key)
+        );
+        return routes[prefix];
+    }
+
+    const updateContent = ({location}) => {
+        const next = findComponentByPath(location.pathname);
+        const current = appContent.firstChild;
+        if (current.nodeName.toLowerCase() !== next) {
+            console.log("app-shell内部使用的微前端页面变了");
+            console.log("顶层路由改变");
+            const newComponent = document.createElement(next);
+            appContent.replaceChild(newComponent, current);
+        } else {
+            console.log("app-shell内部使用的微前端页面不变");
+        }
+    }
+
+    window.appHistory.listen(updateContent);
+
+    updateContent({location: window.location});
+
+    document.addEventListener("click", e => {
+        console.log("app-shell拦截到超链接的点击事件");
+        if (e.target.nodeName === "A") {
+            const href = e.target.getAttribute("href");
+            window.appHistory.push(href);
+            e.preventDefault();
+        }
+    });
+</script>
+
+<footer>
+    <span>页面切换时随机生成一些内容</span>
+</footer>
+
+<script type="module">
+    const randomString = Math.round(Math.random() * 2e5).toString(16);
+    document.querySelector("footer span").innerHTML = randomString;
+</script>
+
+</body>
+</html>
